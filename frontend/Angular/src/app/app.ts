@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { MsalService } from '@azure/msal-angular';
-import { AuthenticationResult } from '@azure/msal-browser';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
+import { AuthenticationResult, InteractionStatus } from '@azure/msal-browser';
+import { Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -11,49 +13,64 @@ import { CommonModule } from '@angular/common';
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   estaLogueado = false;
+  private readonly _destruir$ = new Subject<void>();
 
-  constructor(private msalService: MsalService) {}
+  constructor(
+    private msalService: MsalService,
+    private msalBroadcastService: MsalBroadcastService
+  ) {}
 
   ngOnInit(): void {
-    // Nos quedamos escuchando por si el usuario viene aterrizando desde la página de Microsoft
+    // Atrapamos al usuario cuando vuelve de Azure
     this.msalService.handleRedirectObservable().subscribe({
-      // ¡Acá está el cambio! Le avisamos a TypeScript que el resultado también puede venir nulo
-      next: (resultado: AuthenticationResult | null) => { 
+      next: (resultado: AuthenticationResult | null) => {
         if (resultado) {
-          // Llegó con datos, lo dejamos pasar y guardamos su sesión
+          console.log("¡Llegó token desde Azure!", resultado);
           this.msalService.instance.setActiveAccount(resultado.account);
           localStorage.setItem('jwt', resultado.idToken);
-          this.estaLogueado = true;
-        } else {
-          // Venía nulo, así que revisamos si ya estaba logueado de una visita anterior
-          this.verificarCuentaActiva();
         }
       },
-      error: (error) => {
-        console.error('Uy, algo falló al volver de Azure:', error);
-      }
+      error: (error) => console.error('Error al procesar la vuelta de Azure:', error)
     });
+
+    // Esperamos a que MSAL estabilice su estado interno
+    this.msalBroadcastService.inProgress$
+      .pipe(
+        filter((estado: InteractionStatus) => estado === InteractionStatus.None),
+        takeUntil(this._destruir$)
+      )
+      .subscribe(() => {
+        console.log("Carga de MSAL terminada. Revisando estado de cuentas...");
+        this.verificarCuentaActiva();
+      });
   }
 
   verificarCuentaActiva() {
     const cuentas = this.msalService.instance.getAllAccounts();
+    console.log("Cuentas guardadas en memoria:", cuentas.length);
+
     if (cuentas.length > 0) {
       this.msalService.instance.setActiveAccount(cuentas[0]);
       this.estaLogueado = true;
+    } else {
+      this.estaLogueado = false;
     }
   }
 
-  // Esta función ahora la llamaremos desde un botón
   iniciarSesion() {
     this.msalService.loginRedirect();
   }
 
   cerrarSesion() {
     localStorage.removeItem('jwt');
-    this.msalService.logoutRedirect({
-      postLogoutRedirectUri: 'http://localhost:4200'
-    });
+    this.estaLogueado = false;
+    this.msalService.logoutRedirect();
+  }
+
+  ngOnDestroy(): void {
+    this._destruir$.next(undefined);
+    this._destruir$.complete();
   }
 }
