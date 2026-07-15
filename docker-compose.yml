@@ -1,0 +1,275 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # INFRAESTRUCTURA RABBITMQ
+  # ==========================================
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-alertas-medicas
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    networks:
+      - red-hospital
+
+  productor_alertas:
+    build:
+      context: ./productor_alertas
+    container_name: productor-alertas
+    ports:
+      - "8081:8081"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - red-hospital
+
+  productor_resumenes:
+    build:
+      context: ./productor_resumenes
+    container_name: productor-resumenes
+    ports:
+      - "8082:8082"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - red-hospital
+
+  consumidor_oracle:
+    build:
+      context: ./consumidor_oracle
+    container_name: consumidor-oracle
+    ports:
+      - "8083:8083"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      TNS_ADMIN_PATH: /app/Wallet
+    depends_on:
+      - rabbitmq
+    networks:
+      - red-hospital
+
+  consumidor_json:
+    build:
+      context: ./consumidor_json
+    container_name: consumidor-json
+    ports:
+      - "8084:8084"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    volumes:
+      - ./consumidor_json/archivos_json:/app/archivos_json
+    depends_on:
+      - rabbitmq
+    networks:
+      - red-hospital
+
+
+  # ==========================================
+  # INFRAESTRUCTURA KAFKA & ZOOKEEPER
+  # ==========================================
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+    ports:
+      - 22181:2181
+    networks:
+      - red-hospital
+
+  zookeeper-2:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+    ports:
+      - 32181:2181
+    networks:
+      - red-hospital
+
+  zookeeper-3:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 3
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+    ports:
+      - 42181:2181
+    networks:
+      - red-hospital
+
+  kafka-1:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+    networks:
+      - red-hospital
+
+  kafka-2:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    ports:
+      - 39092:39092
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-2:9092,EXTERNAL://localhost:39092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+    networks:
+      - red-hospital
+
+  kafka-3:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    ports:
+      - 49092:49092
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-3:9092,EXTERNAL://localhost:49092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+    networks:
+      - red-hospital
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - 8090:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+    networks:
+      - red-hospital
+
+
+
+# ==========================================
+  # MICROSERVICIOS KAFKA (Experiencia 3)
+  # ==========================================
+  productor_senales:
+    build:
+      context: ./productor_senales
+    container_name: productor-senales
+    # Cambiamos el puerto para no chocar con RabbitMQ
+    ports:
+      - "8085:8082" 
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      TZ: America/Santiago
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Santiago"
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: unless-stopped
+    networks:
+      - red-hospital
+
+  procesador_senales:
+    build:
+      context: ./procesador_senales
+    container_name: procesador-senales
+    # Cambiamos el puerto para no chocar con RabbitMQ
+    ports:
+      - "8086:8081"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      TZ: America/Santiago
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Santiago"
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: unless-stopped
+    networks:
+      - red-hospital
+
+  consumidor_alertas_oracle:
+    build:
+      context: ./consumidor_alertas_oracle
+    container_name: consumidor-alertas-oracle
+    # Cambiamos el puerto para no chocar con RabbitMQ
+    ports:
+      - "8087:8083"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      TNS_ADMIN_PATH: /app/Wallet
+      TZ: America/Santiago
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Santiago"
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: unless-stopped
+    networks:
+      - red-hospital
+
+  # ==========================================
+  # MICROSERVICIO BFF (Experiencia 1)
+  # ==========================================
+  bff-hospital:
+    build:
+      # Asegúrate de que esta ruta apunte a la carpeta correcta de tu BFF
+      context: ./backend/bff-hospital-graham 
+    container_name: bff-hospital
+    ports:
+      # Asignamos el puerto 8088 al BFF (o el que uses por defecto, ajustalo si es distinto)
+      - "8088:8080" 
+    environment:
+      # Aquí deberás configurar las variables de entorno para que el BFF 
+      # se conecte a las APIs de los demás microservicios o directamente a Oracle.
+      TNS_ADMIN_PATH: /app/Wallet
+    networks:
+      - red-hospital
+
+
+
+networks:
+  red-hospital:
+    driver: bridge
