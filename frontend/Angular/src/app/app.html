@@ -189,6 +189,19 @@
               style="padding: 6px 10px; cursor: pointer; background-color: #c62828; color: white; border: none; border-radius: 4px;">
               Eliminar
             </button>
+
+            <!-- Nuevos botones para interactuar con la orquestación -->
+            <button
+              (click)="enviarAlertaUrgente(paciente)"
+              style="padding: 6px 10px; cursor: pointer; background-color: #d84315; color: white; border: none; border-radius: 4px; margin-right: 6px;">
+              Alerta
+            </button>
+
+            <button
+              (click)="enviarResumenPaciente(paciente)"
+              style="padding: 6px 10px; cursor: pointer; background-color: #283593; color: white; border: none; border-radius: 4px;">
+              Resumen
+            </button>
           </td>
         </tr>
       </tbody>

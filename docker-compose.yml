@@ -196,7 +196,6 @@ services:
     build:
       context: ./productor_senales
     container_name: productor-senales
-    # Cambiamos el puerto para no chocar con RabbitMQ
     ports:
       - "8085:8082" 
     environment:
@@ -215,7 +214,6 @@ services:
     build:
       context: ./procesador_senales
     container_name: procesador-senales
-    # Cambiamos el puerto para no chocar con RabbitMQ
     ports:
       - "8086:8081"
     environment:
@@ -234,7 +232,6 @@ services:
     build:
       context: ./consumidor_alertas_oracle
     container_name: consumidor-alertas-oracle
-    # Cambiamos el puerto para no chocar con RabbitMQ
     ports:
       - "8087:8083"
     environment:

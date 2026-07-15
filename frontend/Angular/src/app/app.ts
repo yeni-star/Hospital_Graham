@@ -278,6 +278,58 @@ export class AppComponent implements OnInit {
     });
   }
 
+  // Llamada al BFF para que orqueste el envío de una alerta urgente a RabbitMQ
+  enviarAlertaUrgente(paciente: Paciente): void {
+    const alertaMsg = `ALERTA CRÍTICA: Paciente ${paciente.nombreApellido} (RUT: ${paciente.rut}) presenta signos vitales fuera de rango: ${paciente.signosVitales}.`;
+    
+    this.http.post(
+      `${environment.apiConfig.uri}/orquestador/alerta`, 
+      alertaMsg, 
+      { headers: this.obtenerHeaders(), responseType: 'text' }
+    ).subscribe({
+      next: (respuesta) => {
+        this.mensajeAccion = "Alerta urgente enviada a las colas con éxito.";
+        this.errorPacientes = "";
+        console.log(respuesta);
+      },
+      error: (error) => {
+        console.error("Fallo al intentar enviar la alerta", error);
+        this.errorPacientes = "No pudimos enviar la alerta al sistema.";
+      }
+    });
+  }
+
+  // Llamada al BFF para mandar el resumen del paciente a RabbitMQ
+  enviarResumenPaciente(paciente: Paciente): void {
+    // Armamos el objeto con la estructura que espera el microservicio
+    const resumen = {
+      idPaciente: paciente.idPaciente,
+      nombrePaciente: paciente.nombreApellido,
+      frecuenciaCardiaca: 80, // Aquí podrías poner campos dinámicos si los tuvieras en el form
+      temperatura: paciente.temperatura,
+      presionArterial: "120/80",
+      saturacionOxigeno: 98,
+      estadoGeneral: paciente.criticidad,
+      fechaResumen: new Date().toISOString()
+    };
+
+    this.http.post(
+      `${environment.apiConfig.uri}/orquestador/resumen`, 
+      resumen, 
+      { headers: this.obtenerHeaders(), responseType: 'text' }
+    ).subscribe({
+      next: (respuesta) => {
+        this.mensajeAccion = "Resumen del paciente enviado correctamente.";
+        this.errorPacientes = "";
+        console.log(respuesta);
+      },
+      error: (error) => {
+        console.error("Fallo al mandar el resumen", error);
+        this.errorPacientes = "Tuvimos un problema enviando el resumen.";
+      }
+    });
+  }
+
   iniciarSesion(): void {
     this.msalService.loginRedirect();
   }
