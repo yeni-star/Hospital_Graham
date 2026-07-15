@@ -1,0 +1,10 @@
+{
+  "idPaciente" : 2,
+  "nombrePaciente" : "Carlos Ramírez",
+  "frecuenciaCardiaca" : 78,
+  "temperatura" : 36.8,
+  "presionArterial" : "120/80",
+  "saturacionOxigeno" : 98,
+  "estadoGeneral" : "Estable",
+  "fechaResumen" : "2026-06-27 02:00:00"
+}

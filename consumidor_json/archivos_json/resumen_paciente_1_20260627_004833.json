@@ -1,0 +1,10 @@
+{
+  "idPaciente" : 1,
+  "nombrePaciente" : "Maria Gonzalez",
+  "frecuenciaCardiaca" : 120,
+  "temperatura" : 38.7,
+  "presionArterial" : "140/90",
+  "saturacionOxigeno" : 91,
+  "estadoGeneral" : "Paciente con signos vitales alterados",
+  "fechaResumen" : "2026-06-26 23:25:00"
+}

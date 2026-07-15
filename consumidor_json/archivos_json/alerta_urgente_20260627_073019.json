@@ -1,0 +1,8 @@
+{
+  "idPaciente": 1,
+  "tipoAlerta": "SATURACION_BAJA",
+  "valorDetectado": "95",
+  "nivelCriticidad": "CRITICA",
+  "mensajeAlerta": "Paciente presenta baja saturación de oxígeno.",
+  "origenMensaje": "Productor alertas"
+}
