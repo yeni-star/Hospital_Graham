@@ -138,6 +138,7 @@ export class AppComponent implements OnInit {
       error: (error) => {
         console.error("Error al consultar pacientes:", error);
         this.errorPacientes = "No se pudieron cargar los pacientes.";
+        this.mensajeAccion = "";
         this.cargandoPacientes = false;
         this.detectorCambios.detectChanges();
       }
@@ -219,6 +220,9 @@ export class AppComponent implements OnInit {
   }
 
   crearPaciente(): void {
+    this.errorPacientes = "";
+    this.mensajeAccion = "";
+
     this.http.post<Paciente>(`${environment.apiConfig.uri}/pacientes`, this.pacienteFormulario, {
       headers: this.obtenerHeaders()
     }).subscribe({
@@ -226,10 +230,13 @@ export class AppComponent implements OnInit {
         this.mensajeAccion = "Paciente creado correctamente.";
         this.errorPacientes = "";
         this.consultarPacientes();
+        this.detectorCambios.detectChanges();
       },
       error: (error) => {
         console.error("Error al crear paciente:", error);
         this.errorPacientes = "No se pudo crear el paciente.";
+        this.mensajeAccion = "";
+        this.detectorCambios.detectChanges();
       }
     });
   }
@@ -242,9 +249,14 @@ export class AppComponent implements OnInit {
     this.pacienteFormulario = {
       ...paciente
     };
+
+    this.detectorCambios.detectChanges();
   }
 
   actualizarPaciente(): void {
+    this.errorPacientes = "";
+    this.mensajeAccion = "";
+
     this.http.put<Paciente>(
       `${environment.apiConfig.uri}/pacientes/${this.pacienteFormulario.idPaciente}`,
       this.pacienteFormulario,
@@ -254,15 +266,21 @@ export class AppComponent implements OnInit {
         this.mensajeAccion = "Paciente modificado correctamente.";
         this.errorPacientes = "";
         this.consultarPacientes();
+        this.detectorCambios.detectChanges();
       },
       error: (error) => {
         console.error("Error al modificar paciente:", error);
         this.errorPacientes = "No se pudo modificar el paciente.";
+        this.mensajeAccion = "";
+        this.detectorCambios.detectChanges();
       }
     });
   }
 
   eliminarPaciente(idPaciente: number): void {
+    this.errorPacientes = "";
+    this.mensajeAccion = "";
+
     this.http.delete(`${environment.apiConfig.uri}/pacientes/${idPaciente}`, {
       headers: this.obtenerHeaders()
     }).subscribe({
@@ -270,42 +288,58 @@ export class AppComponent implements OnInit {
         this.mensajeAccion = "Paciente eliminado correctamente.";
         this.errorPacientes = "";
         this.consultarPacientes();
+        this.detectorCambios.detectChanges();
       },
       error: (error) => {
         console.error("Error al eliminar paciente:", error);
         this.errorPacientes = "No se pudo eliminar el paciente.";
+        this.mensajeAccion = "";
+        this.detectorCambios.detectChanges();
       }
     });
   }
 
-  // Llamada al BFF para que orqueste el envío de una alerta urgente a RabbitMQ
   enviarAlertaUrgente(paciente: Paciente): void {
+    this.errorPacientes = "";
+    this.mensajeAccion = "";
+
     const alertaMsg = `ALERTA CRÍTICA: Paciente ${paciente.nombreApellido} (RUT: ${paciente.rut}) presenta signos vitales fuera de rango: ${paciente.signosVitales}.`;
-    
+
     this.http.post(
-      `${environment.apiConfig.uri}/orquestador/alerta`, 
-      alertaMsg, 
-      { headers: this.obtenerHeaders(), responseType: 'text' }
+      `${environment.apiConfig.uri}/orquestador/alerta`,
+      alertaMsg,
+      {
+        headers: this.obtenerHeaders(),
+        responseType: "text"
+      }
     ).subscribe({
       next: (respuesta) => {
-        this.mensajeAccion = "Alerta urgente enviada a las colas con éxito.";
+        console.log("Respuesta alerta:", respuesta);
+
+        this.mensajeAccion = "Alerta urgente enviada correctamente al sistema.";
         this.errorPacientes = "";
-        console.log(respuesta);
+
+        this.detectorCambios.detectChanges();
       },
       error: (error) => {
         console.error("Fallo al intentar enviar la alerta", error);
+
         this.errorPacientes = "No pudimos enviar la alerta al sistema.";
+        this.mensajeAccion = "";
+
+        this.detectorCambios.detectChanges();
       }
     });
   }
 
-  // Llamada al BFF para mandar el resumen del paciente a RabbitMQ
   enviarResumenPaciente(paciente: Paciente): void {
-    // Armamos el objeto con la estructura que espera el microservicio
+    this.errorPacientes = "";
+    this.mensajeAccion = "";
+
     const resumen = {
       idPaciente: paciente.idPaciente,
       nombrePaciente: paciente.nombreApellido,
-      frecuenciaCardiaca: 80, // Aquí podrías poner campos dinámicos si los tuvieras en el form
+      frecuenciaCardiaca: 80,
       temperatura: paciente.temperatura,
       presionArterial: "120/80",
       saturacionOxigeno: 98,
@@ -314,18 +348,28 @@ export class AppComponent implements OnInit {
     };
 
     this.http.post(
-      `${environment.apiConfig.uri}/orquestador/resumen`, 
-      resumen, 
-      { headers: this.obtenerHeaders(), responseType: 'text' }
+      `${environment.apiConfig.uri}/orquestador/resumen`,
+      resumen,
+      {
+        headers: this.obtenerHeaders(),
+        responseType: "text"
+      }
     ).subscribe({
       next: (respuesta) => {
+        console.log("Respuesta resumen:", respuesta);
+
         this.mensajeAccion = "Resumen del paciente enviado correctamente.";
         this.errorPacientes = "";
-        console.log(respuesta);
+
+        this.detectorCambios.detectChanges();
       },
       error: (error) => {
         console.error("Fallo al mandar el resumen", error);
+
         this.errorPacientes = "Tuvimos un problema enviando el resumen.";
+        this.mensajeAccion = "";
+
+        this.detectorCambios.detectChanges();
       }
     });
   }
