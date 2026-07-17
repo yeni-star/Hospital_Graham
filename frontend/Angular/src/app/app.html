@@ -35,60 +35,7 @@
   </header>
 
   <main class="contenido">
-    <section class="tarjetas-resumen">
-      <article class="tarjeta-info">
-        <span class="icono">👥</span>
-        <div>
-          <p>Pacientes registrados</p>
-          <h2>{{ pacientes.length }}</h2>
-        </div>
-      </article>
-
-      <article class="tarjeta-info">
-        <span class="icono">🚨</span>
-        <div>
-          <p>Alertas médicas</p>
-          <h2>RabbitMQ</h2>
-        </div>
-      </article>
-
-      <article class="tarjeta-info">
-        <span class="icono">☁️</span>
-        <div>
-          <p>Conexión principal</p>
-          <h2>Oracle Cloud</h2>
-        </div>
-      </article>
-
-      <article class="tarjeta-info">
-        <span class="icono">🔐</span>
-        <div>
-          <p>Identidad</p>
-          <h2>Azure B2C</h2>
-        </div>
-      </article>
-    </section>
-
-    <section class="flujo-sistema">
-      <h3>Flujos demostrados</h3>
-
-      <div class="flujo-grid">
-        <div class="flujo-card">
-          <strong>CRUD pacientes</strong>
-          <p>Frontend → API Gateway → BFF → Oracle</p>
-        </div>
-
-        <div class="flujo-card">
-          <strong>Cola de alertas</strong>
-          <p>Frontend → BFF → productor-alertas → RabbitMQ</p>
-        </div>
-
-        <div class="flujo-card">
-          <strong>Resumen paciente</strong>
-          <p>BFF → productor-resumenes → cola de mensajes</p>
-        </div>
-      </div>
-    </section>
+    
 
     <section class="panel-formulario">
       <div class="titulo-seccion">
