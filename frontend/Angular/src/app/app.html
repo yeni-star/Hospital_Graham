@@ -168,145 +168,7 @@
       </div>
     </section>
 
-    <section class="mensajes">
-      <p *ngIf="cargandoPacientes" class="mensaje-cargando">
-        Cargando pacientes...
-      </p>
-
-      <p *ngIf="mensajeAccion" class="mensaje-ok">
-        {{ mensajeAccion }}
-      </p>
-
-      <p *ngIf="errorPacientes" class="mensaje-error">
-        {{ errorPacientes }}
-      </p>
-    </section>
-    <section class="panel-eventos">
-      <div class="titulo-seccion">
-        <div>
-          <p class="etiqueta-superior">Mensajería en vivo</p>
-          <h2>Monitor de eventos asíncronos</h2>
-        </div>
-
-        <span class="estado-formulario">
-          RabbitMQ / Kafka
-        </span>
-      </div>
-
-      <div class="descripcion-eventos">
-        <p>
-          En este panel se muestran los eventos generados desde el frontend cuando se envían alertas o resúmenes hacia los microservicios.
-        </p>
-      </div>
-
-      <div class="eventos-vacio" *ngIf="eventosMensajeria.length === 0">
-        <span>📡</span>
-        <p>Aún no se han enviado eventos desde el panel.</p>
-      </div>
-
-      <div class="lista-eventos" *ngIf="eventosMensajeria.length > 0">
-        <div class="evento-item" *ngFor="let evento of eventosMensajeria">
-          <div class="evento-hora">
-            {{ evento.hora }}
-          </div>
-
-          <div class="evento-contenido">
-            <div class="evento-cabecera">
-              <span
-                class="evento-tipo"
-                [ngClass]="{
-                  'tipo-rabbit': evento.tipo === 'RabbitMQ',
-                  'tipo-kafka': evento.tipo === 'Kafka'
-                }">
-                {{ evento.tipo }}
-              </span>
-
-              <span
-                class="evento-estado"
-                [ngClass]="{
-                  'estado-enviando': evento.estado === 'Enviando',
-                  'estado-enviado': evento.estado === 'Enviado',
-                  'estado-error': evento.estado === 'Error'
-                }">
-                {{ evento.estado }}
-              </span>
-            </div>
-
-            <h4>{{ evento.paciente }}</h4>
-            <p>{{ evento.detalle }}</p>
-          </div>
-        </div>
-      </div>
-</section>
-
-<section class="panel-alertas-kafka">
-  <div class="titulo-seccion">
-    <div>
-      <p class="etiqueta-superior">Streaming Kafka</p>
-      <h2>Alertas Kafka registradas en Oracle</h2>
-    </div>
-
-    <button class="boton-actualizar-kafka" type="button" (click)="consultarAlertasKafka()">
-      Actualizar alertas
-    </button>
-  </div>
-
-  <div class="descripcion-eventos">
-    <p>
-      Estas alertas vienen desde la tabla ALERTAS_KAFKA en Oracle. El flujo corresponde a productor-senales,
-      Kafka, procesador-senales y consumidor-alertas-oracle.
-    </p>
-  </div>
-
-  <p *ngIf="cargandoAlertasKafka" class="mensaje-cargando">
-    Cargando alertas Kafka...
-  </p>
-
-  <p *ngIf="errorAlertasKafka" class="mensaje-error">
-    {{ errorAlertasKafka }}
-  </p>
-
-  <div class="eventos-vacio" *ngIf="!cargandoAlertasKafka && alertasKafka.length === 0">
-    <span>🧬</span>
-    <p>Aún no hay alertas Kafka para mostrar.</p>
-  </div>
-
-  <div class="tabla-alertas-kafka" *ngIf="alertasKafka.length > 0">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Fecha</th>
-          <th>Paciente</th>
-          <th>Tipo anomalía</th>
-          <th>Valor</th>
-          <th>Mensaje</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr *ngFor="let alerta of alertasKafka">
-          <td>{{ alerta.idAlerta }}</td>
-          <td>{{ alerta.fechaAlerta | date:'dd-MM-yyyy HH:mm:ss' }}</td>
-          <td>
-            <strong>{{ alerta.nombrePaciente }}</strong>
-            <span>{{ alerta.idPaciente }}</span>
-          </td>
-          <td>
-            <span class="badge-kafka">
-              {{ alerta.tipoAnomalia }}
-            </span>
-          </td>
-          <td>{{ alerta.valorDetectado }}</td>
-          <td>{{ alerta.mensaje }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-
-    <section class="panel-tabla">
+<section class="panel-tabla">
       <div class="titulo-seccion">
         <div>
           <p class="etiqueta-superior">Base de datos</p>
@@ -383,6 +245,147 @@
         No hay pacientes registrados.
       </p>
     </section>
+
+
+    <section class="mensajes">
+      <p *ngIf="cargandoPacientes" class="mensaje-cargando">
+        Cargando pacientes...
+      </p>
+
+      <p *ngIf="mensajeAccion" class="mensaje-ok">
+        {{ mensajeAccion }}
+      </p>
+
+      <p *ngIf="errorPacientes" class="mensaje-error">
+        {{ errorPacientes }}
+      </p>
+    </section>
+    <section class="panel-eventos">
+      <div class="titulo-seccion">
+        <div>
+          <p class="etiqueta-superior">Mensajería en vivo</p>
+          <h2>Monitor de eventos asíncronos</h2>
+        </div>
+
+        <span class="estado-formulario">
+          RabbitMQ
+        </span>
+      </div>
+
+      <div class="descripcion-eventos">
+        <p>
+          En este panel se muestran los eventos generados desde el frontend cuando se envían alertas o resúmenes hacia los microservicios.
+        </p>
+      </div>
+
+      <div class="eventos-vacio" *ngIf="eventosMensajeria.length === 0">
+        <span>📡</span>
+        <p>Aún no se han enviado eventos desde el panel.</p>
+      </div>
+
+      <div class="lista-eventos" *ngIf="eventosMensajeria.length > 0">
+        <div class="evento-item" *ngFor="let evento of eventosMensajeria">
+          <div class="evento-hora">
+            {{ evento.hora }}
+          </div>
+
+          <div class="evento-contenido">
+            <div class="evento-cabecera">
+              <span
+                class="evento-tipo"
+                [ngClass]="{
+                  'tipo-rabbit': evento.tipo === 'RabbitMQ',
+                  'tipo-kafka': evento.tipo === 'Kafka'
+                }">
+                {{ evento.tipo }}
+              </span>
+
+              <span
+                class="evento-estado"
+                [ngClass]="{
+                  'estado-enviando': evento.estado === 'Enviando',
+                  'estado-enviado': evento.estado === 'Enviado',
+                  'estado-error': evento.estado === 'Error'
+                }">
+                {{ evento.estado }}
+              </span>
+            </div>
+
+            <h4>{{ evento.paciente }}</h4>
+            <p>{{ evento.detalle }}</p>
+          </div>
+        </div>
+      </div>
+</section>
+
+<section class="panel-alertas-kafka">
+  <div class="titulo-seccion">
+    <div>
+      <p class="etiqueta-superior">Streaming</p>
+      <h2>Alertas Kafka registradas en Oracle</h2>
+    </div>
+
+    <button class="boton-actualizar-kafka" type="button" (click)="consultarAlertasKafka()">
+      Actualizar alertas
+    </button>
+  </div>
+
+  <div class="descripcion-eventos">
+    <p>
+      Estas alertas vienen desde la tabla ALERTAS_KAFKA en Oracle. El flujo corresponde a productor-senales,
+      Kafka, procesador-senales y consumidor-alertas-oracle.
+    </p>
+  </div>
+
+  <p *ngIf="cargandoAlertasKafka" class="mensaje-cargando">
+    Cargando alertas Kafka...
+  </p>
+
+  <p *ngIf="errorAlertasKafka" class="mensaje-error">
+    {{ errorAlertasKafka }}
+  </p>
+
+  <div class="eventos-vacio" *ngIf="!cargandoAlertasKafka && alertasKafka.length === 0">
+    <span>🧬</span>
+    <p>Aún no hay alertas Kafka para mostrar.</p>
+  </div>
+
+  <div class="tabla-alertas-kafka" *ngIf="alertasKafka.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha</th>
+          <th>Paciente</th>
+          <th>Tipo anomalía</th>
+          <th>Valor</th>
+          <th>Mensaje</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let alerta of alertasKafka">
+          <td>{{ alerta.idAlerta }}</td>
+          <td>{{ alerta.fechaAlerta | date:'dd-MM-yyyy HH:mm:ss' }}</td>
+          <td>
+            <strong>{{ alerta.nombrePaciente }}</strong>
+            <span>{{ alerta.idPaciente }}</span>
+          </td>
+          <td>
+            <span class="badge-kafka">
+              {{ alerta.tipoAnomalia }}
+            </span>
+          </td>
+          <td>{{ alerta.valorDetectado }}</td>
+          <td>{{ alerta.mensaje }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+    
 
     <router-outlet></router-outlet>
   </main>
