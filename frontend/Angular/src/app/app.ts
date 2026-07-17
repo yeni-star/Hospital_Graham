@@ -27,6 +27,16 @@ interface EventoMensajeria {
   detalle: string;
 }
 
+interface AlertaKafka {
+  idAlerta: number;
+  fechaAlerta: string;
+  idPaciente: string;
+  mensaje: string;
+  nombrePaciente: string;
+  tipoAnomalia: string;
+  valorDetectado: number;
+}
+
 @Component({
   selector: "app-root",
   standalone: true,
@@ -44,6 +54,10 @@ export class AppComponent implements OnInit {
   mensajeAccion = "";
 
   eventosMensajeria: EventoMensajeria[] = [];
+
+  alertasKafka: AlertaKafka[] = [];
+  cargandoAlertasKafka = false;
+  errorAlertasKafka = "";
 
   modoEdicion = false;
 
@@ -108,8 +122,9 @@ export class AppComponent implements OnInit {
     console.log("estaLogueado:", this.estaLogueado);
     console.log("cargandoMsal:", this.cargandoMsal);
 
-    if (this.estaLogueado) {
+   if (this.estaLogueado) {
       this.consultarPacientes();
+      this.consultarAlertasKafka();
     }
 
     this.detectorCambios.detectChanges();
@@ -154,6 +169,39 @@ export class AppComponent implements OnInit {
       }
     });
   }
+
+  consultarAlertasKafka(): void {
+  const token = localStorage.getItem("jwt");
+
+  if (!token) {
+    this.errorAlertasKafka = "No se encontró token de Azure.";
+    return;
+  }
+
+  this.cargandoAlertasKafka = true;
+  this.errorAlertasKafka = "";
+
+  this.http.get<AlertaKafka[]>(`${environment.apiConfig.uri}/alertas-kafka`, {
+    headers: this.obtenerHeaders()
+  }).subscribe({
+    next: (respuesta) => {
+      console.log("Alertas Kafka recibidas:", respuesta);
+
+      this.alertasKafka = respuesta;
+      this.cargandoAlertasKafka = false;
+
+      this.detectorCambios.detectChanges();
+    },
+    error: (error) => {
+      console.error("Error al consultar alertas Kafka:", error);
+
+      this.errorAlertasKafka = "No se pudieron cargar las alertas Kafka.";
+      this.cargandoAlertasKafka = false;
+
+      this.detectorCambios.detectChanges();
+    }
+  });
+}
 
   prepararFormularioNuevo(): void {
     const ids = this.pacientes.map(paciente => paciente.idPaciente);

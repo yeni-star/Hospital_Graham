@@ -238,6 +238,74 @@
         </div>
       </div>
 </section>
+
+<section class="panel-alertas-kafka">
+  <div class="titulo-seccion">
+    <div>
+      <p class="etiqueta-superior">Streaming Kafka</p>
+      <h2>Alertas Kafka registradas en Oracle</h2>
+    </div>
+
+    <button class="boton-actualizar-kafka" type="button" (click)="consultarAlertasKafka()">
+      Actualizar alertas
+    </button>
+  </div>
+
+  <div class="descripcion-eventos">
+    <p>
+      Estas alertas vienen desde la tabla ALERTAS_KAFKA en Oracle. El flujo corresponde a productor-senales,
+      Kafka, procesador-senales y consumidor-alertas-oracle.
+    </p>
+  </div>
+
+  <p *ngIf="cargandoAlertasKafka" class="mensaje-cargando">
+    Cargando alertas Kafka...
+  </p>
+
+  <p *ngIf="errorAlertasKafka" class="mensaje-error">
+    {{ errorAlertasKafka }}
+  </p>
+
+  <div class="eventos-vacio" *ngIf="!cargandoAlertasKafka && alertasKafka.length === 0">
+    <span>🧬</span>
+    <p>Aún no hay alertas Kafka para mostrar.</p>
+  </div>
+
+  <div class="tabla-alertas-kafka" *ngIf="alertasKafka.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha</th>
+          <th>Paciente</th>
+          <th>Tipo anomalía</th>
+          <th>Valor</th>
+          <th>Mensaje</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let alerta of alertasKafka">
+          <td>{{ alerta.idAlerta }}</td>
+          <td>{{ alerta.fechaAlerta | date:'dd-MM-yyyy HH:mm:ss' }}</td>
+          <td>
+            <strong>{{ alerta.nombrePaciente }}</strong>
+            <span>{{ alerta.idPaciente }}</span>
+          </td>
+          <td>
+            <span class="badge-kafka">
+              {{ alerta.tipoAnomalia }}
+            </span>
+          </td>
+          <td>{{ alerta.valorDetectado }}</td>
+          <td>{{ alerta.mensaje }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
     <section class="panel-tabla">
       <div class="titulo-seccion">
         <div>
