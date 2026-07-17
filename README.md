@@ -1,216 +1,552 @@
-# Hospital Graham - Sistema de Alertas Médicas
+# Hospital Graham - Sistema de Alertas Médicas Cloud Native
 
-Este proyecto corresponde a un sistema de alertas médicas para el Hospital Graham. La aplicación permite gestionar pacientes críticos mediante un frontend desarrollado en Angular y un backend BFF desarrollado en Spring Boot.
+Proyecto desarrollado para la asignatura **Desarrollo Cloud Native I - DSY2206**.
 
-El sistema utiliza autenticación mediante Azure B2C como Identity as a Service, validación de token JWT, API Gateway en AWS como API Manager, despliegue del backend en Docker sobre una instancia EC2 y persistencia de datos en Oracle Cloud.
+El sistema corresponde a una plataforma para gestionar pacientes del Hospital Graham y demostrar una arquitectura cloud native usando frontend Angular, backend BFF, autenticación con Azure B2C, API Gateway, Oracle Cloud, RabbitMQ, Kafka, Docker y despliegue en AWS EC2.
 
 ## Integrantes
 
-* Yenifer Tapia
-* Nicolás Gutiérrez
+- Yenifer Tapia
+- Nicolás Gutiérrez
 
-## Arquitectura del sistema
+## Descripción general
 
-El flujo principal del sistema es el siguiente:
+La aplicación permite iniciar sesión mediante Azure B2C, consultar pacientes, crear nuevos registros, modificar datos, eliminar pacientes y enviar eventos asíncronos mediante RabbitMQ y Kafka.
+
+El proyecto integra tres flujos principales:
 
 ```text
-Usuario
-↓
-Frontend Angular
-↓
-Azure B2C / Identity as a Service
-↓
-Token JWT
-↓
-AWS API Gateway
-↓
-BFF Spring Boot en Docker sobre EC2
-↓
-Oracle Cloud Database
+Frontend Angular → API Gateway → BFF Spring Boot → Oracle Cloud
+```
+
+```text
+Frontend Angular → API Gateway → BFF → productor-alertas → RabbitMQ → consumidor-oracle → ALERTAS_MEDICAS
+```
+
+```text
+productor-senales → Kafka → procesador-senales → consumidor-alertas-oracle → ALERTAS_KAFKA → BFF → API Gateway → Frontend
 ```
 
 ## Tecnologías utilizadas
 
-* Angular
-* TypeScript
-* Spring Boot
-* Java
-* Spring Security
-* JWT
-* Azure B2C
-* AWS API Gateway
-* AWS EC2
-* Docker
-* Docker Hub
-* Oracle Cloud Database
-* Postman
+- Angular
+- TypeScript
+- Java 17
+- Spring Boot
+- Spring Security
+- JWT
+- Azure B2C
+- AWS API Gateway
+- AWS EC2
+- Docker
+- Docker Hub
+- Oracle Cloud Autonomous Database
+- RabbitMQ
+- Apache Kafka
+- Zookeeper
+- Maven
 
-## Funcionalidades principales
-
-El sistema permite realizar las siguientes operaciones sobre pacientes críticos:
-
-* Consultar pacientes
-* Crear pacientes
-* Modificar pacientes
-* Eliminar pacientes
-* Autenticación de usuario mediante Azure B2C
-* Validación de token JWT
-* Consumo de API protegida mediante API Gateway
-
-## Endpoints principales
-
-Los endpoints del BFF son:
+## Estructura del proyecto
 
 ```text
-GET     /api/pacientes
-POST    /api/pacientes
-PUT     /api/pacientes/{id}
-DELETE  /api/pacientes/{id}
+Hospital_Graham/
+│
+├── frontend/
+│   └── Angular/
+│
+├── backend/
+│   └── bff-hospital-graham/
+│
+├── productor_alertas/
+├── productor_resumenes/
+├── consumidor_json/
+├── consumidor_oracle/
+│
+├── productor_senales/
+├── procesador_senales/
+├── consumidor_alertas_oracle/
+│
+├── docker-compose.yml
+└── README.md
 ```
-
-Estos endpoints se encuentran publicados mediante AWS API Gateway.
-
-## Seguridad
-
-La autenticación del sistema se realiza mediante Azure B2C. El usuario debe iniciar sesión desde el frontend y, una vez autenticado, Azure entrega un token JWT.
-
-Este token es enviado en cada solicitud hacia el API Gateway usando el header:
-
-```text
-Authorization: Bearer <token>
-```
-
-API Gateway valida el token antes de redirigir la solicitud al backend. Además, el BFF también valida el JWT mediante Spring Security.
-
-## Backend BFF
-
-El backend fue desarrollado en Spring Boot y cumple el rol de BFF para gestionar la comunicación entre el frontend y la base de datos.
-
-El backend se conecta a Oracle Cloud Database y permite ejecutar operaciones CRUD sobre la tabla de pacientes.
 
 ## Frontend Angular
 
-El frontend permite al usuario iniciar sesión mediante Azure B2C y luego acceder al panel de pacientes críticos.
+El frontend permite al usuario autenticarse con Azure B2C y acceder al panel principal del sistema.
 
-Desde el panel se pueden realizar las operaciones:
+Funciones principales del frontend:
 
-* Listar pacientes
-* Crear paciente
-* Modificar paciente
-* Eliminar paciente
+- Iniciar sesión con Azure B2C.
+- Consultar pacientes desde Oracle.
+- Crear pacientes.
+- Modificar pacientes.
+- Eliminar pacientes.
+- Enviar alerta manual mediante RabbitMQ.
+- Enviar resumen de paciente mediante RabbitMQ.
+- Visualizar alertas Kafka reales almacenadas en Oracle.
 
-También se agregaron validaciones simples en el formulario para evitar enviar datos incompletos.
-
-## Despliegue con Docker
-
-El backend fue empaquetado en una imagen Docker y subido a Docker Hub.
-
-Nombre de la imagen:
-
-```text
-darknight17/bff-hospital-graham:latest
-```
-
-Comando usado para ejecutar el contenedor en EC2:
-
-```bash
-sudo docker run -d --name bff-hospital-graham -p 8080:8080 darknight17/bff-hospital-graham:latest
-```
-
-Para revisar el contenedor:
-
-```bash
-sudo docker ps
-```
-
-Para revisar logs:
-
-```bash
-sudo docker logs bff-hospital-graham
-```
-
-## API Gateway
-
-AWS API Gateway se utilizó como API Manager para exponer públicamente los endpoints del BFF.
-
-Las rutas configuradas fueron:
-
-```text
-GET     /api/pacientes
-POST    /api/pacientes
-PUT     /api/pacientes/{id}
-DELETE  /api/pacientes/{id}
-```
-
-Además, se configuró JWT Auth para proteger las rutas del API.
-
-## Base de datos
-
-La base de datos utilizada corresponde a Oracle Cloud Database.
-
-La información de los pacientes se almacena y se actualiza desde el backend BFF. Las operaciones realizadas desde el frontend y Postman se ven reflejadas en Oracle.
-
-## Pruebas realizadas
-
-Se realizaron pruebas desde Postman usando la URL pública de API Gateway.
-
-Se validaron las operaciones:
-
-* GET con respuesta 200 OK
-* POST con respuesta 200 OK
-* PUT con respuesta 200 OK
-* DELETE con respuesta 200 OK
-* Prueba sin token con respuesta Unauthorized
-
-También se validó el funcionamiento desde el frontend Angular.
-
-## Consideración importante
-
-Como el despliegue se realizó en AWS Academy, la IP pública de la instancia EC2 puede cambiar cuando el laboratorio se apaga y se vuelve a iniciar.
-
-Si la IP cambia, se debe actualizar la integración del API Gateway para que apunte nuevamente a la IP pública actual de la instancia EC2.
-
-## Ejecución local del frontend
-
-Para ejecutar el frontend:
-
-```bash
-npm install
-ng serve
-```
-
-Luego abrir en el navegador:
+La aplicación se ejecuta localmente en:
 
 ```text
 http://localhost:4200
 ```
 
-## Ejecución local del backend
+## Backend BFF
 
-Para compilar el backend:
+El backend principal corresponde a un BFF desarrollado en Spring Boot.
 
-```bash
-mvn clean package
+Este backend recibe las solicitudes del frontend, valida el token JWT y se comunica con Oracle Cloud y con los microservicios productores.
+
+Endpoints principales:
+
+```text
+GET     /api/pacientes
+POST    /api/pacientes
+PUT     /api/pacientes/{id}
+DELETE  /api/pacientes/{id}
 ```
 
-Para construir la imagen Docker:
+Endpoints de orquestación:
 
-```bash
-docker build -t bff-hospital-graham .
+```text
+POST    /api/orquestador/alerta
+POST    /api/orquestador/resumen
 ```
 
-Para etiquetar la imagen:
+Endpoint para mostrar alertas Kafka en el frontend:
 
-```bash
-docker tag bff-hospital-graham darknight17/bff-hospital-graham:latest
+```text
+GET     /api/alertas-kafka
 ```
 
-Para subir la imagen a Docker Hub:
+## Seguridad con Azure B2C
+
+La autenticación se realiza mediante Azure B2C como Identity as a Service.
+
+El usuario inicia sesión desde Angular y Azure entrega un token JWT. Ese token se envía en cada solicitud con el header:
+
+```text
+Authorization: Bearer <token>
+```
+
+El API Gateway y el BFF validan el token antes de permitir el acceso a los endpoints protegidos.
+
+## API Gateway
+
+AWS API Gateway se utiliza como API Manager para exponer públicamente las rutas del BFF.
+
+Rutas configuradas:
+
+```text
+GET     /api/pacientes
+POST    /api/pacientes
+PUT     /api/pacientes/{id}
+DELETE  /api/pacientes/{id}
+POST    /api/orquestador/alerta
+POST    /api/orquestador/resumen
+GET     /api/alertas-kafka
+```
+
+URL base usada desde el frontend:
+
+```text
+https://uwbn20sm3h.execute-api.us-east-1.amazonaws.com/api
+```
+
+La integración apunta al BFF desplegado en EC2 por el puerto 8080.
+
+> Importante: si la IP pública de la EC2 cambia, se debe actualizar la integración en API Gateway y también permitir la nueva IP en Oracle Cloud.
+
+## Base de datos Oracle Cloud
+
+La base de datos utilizada corresponde a Oracle Cloud Autonomous Database.
+
+Tablas principales usadas:
+
+```text
+PACIENTES
+ALERTAS_MEDICAS
+ALERTAS_KAFKA
+PACIENTES_CRITICOS
+SIGNOS_VITALES
+```
+
+Durante la integración se corrigió la llave foránea de `ALERTAS_MEDICAS`, para que apunte a la tabla correcta:
+
+```text
+ALERTAS_MEDICAS.ID_PACIENTE → PACIENTES.ID_PACIENTE
+```
+
+Esto permite que las alertas generadas desde RabbitMQ se puedan guardar correctamente en Oracle.
+
+## RabbitMQ
+
+RabbitMQ se usa para manejar mensajes asíncronos desde botones del frontend.
+
+Contenedor utilizado:
+
+```text
+rabbitmq-alertas-medicas
+```
+
+Credenciales de prueba:
+
+```text
+usuario: admin
+password: admin123
+```
+
+Puerto de mensajería:
+
+```text
+5672
+```
+
+Consola de administración:
+
+```text
+http://<IP_EC2>:15672
+```
+
+### Colas principales
+
+```text
+cola.alertas.oracle
+cola.alertas.json
+cola.resumenes
+```
+
+### Flujo del botón Alerta
+
+```text
+Frontend
+→ API Gateway
+→ BFF
+→ productor-alertas
+→ RabbitMQ
+→ cola.alertas.oracle
+→ consumidor-oracle
+→ Oracle ALERTAS_MEDICAS
+```
+
+El botón **Alerta** genera una alerta médica en formato JSON, la envía a RabbitMQ y el consumidor Oracle la guarda en la tabla `ALERTAS_MEDICAS`.
+
+También se envía una copia hacia:
+
+```text
+cola.alertas.json
+```
+
+para que sea procesada por el consumidor JSON.
+
+### Flujo del botón Resumen
+
+```text
+Frontend
+→ API Gateway
+→ BFF
+→ productor-resumenes
+→ RabbitMQ
+→ cola.resumenes
+→ consumidor-json
+```
+
+El botón **Resumen** demuestra una segunda cola de RabbitMQ. Este flujo no guarda en Oracle, sino que genera un mensaje JSON con datos del paciente para ser procesado por el consumidor JSON.
+
+## Kafka
+
+Kafka se utiliza para el streaming automático de señales vitales.
+
+Componentes principales:
+
+```text
+zookeeper-1
+kafka-1
+productor-senales
+procesador-senales
+consumidor-alertas-oracle
+```
+
+### Topics utilizados
+
+```text
+senales_vitales
+alertas
+```
+
+### Flujo Kafka
+
+```text
+productor-senales
+→ topic senales_vitales
+→ procesador-senales
+→ topic alertas
+→ consumidor-alertas-oracle
+→ Oracle ALERTAS_KAFKA
+→ BFF
+→ API Gateway
+→ Frontend Angular
+```
+
+El productor de señales genera lecturas de signos vitales. El procesador revisa esas señales y, cuando detecta una anomalía, publica una alerta. Luego el consumidor de alertas Oracle guarda el registro en la tabla `ALERTAS_KAFKA`.
+
+Finalmente, el frontend consulta el endpoint:
+
+```text
+GET /api/alertas-kafka
+```
+
+y muestra las últimas alertas Kafka reales almacenadas en Oracle.
+
+Para evitar saturación, el productor de señales fue ajustado para generar datos cada 60 segundos:
+
+```java
+@Scheduled(fixedRate = 60000)
+```
+
+## Docker Hub
+
+Imágenes publicadas en Docker Hub:
+
+```text
+darknight17/bff-hospital-graham:latest
+darknight17/productor-alertas:latest
+darknight17/productor-resumenes:latest
+darknight17/consumidor-json:latest
+darknight17/consumidor-oracle:latest
+darknight17/productor-senales:latest
+darknight17/procesador-senales:latest
+darknight17/consumidor-alertas-oracle:latest
+```
+
+## Despliegue en EC2
+
+El sistema fue desplegado en AWS EC2 usando Docker.
+
+Inicialmente se probó con una instancia `t2.micro`, pero al levantar Kafka, RabbitMQ y varios microservicios Java al mismo tiempo, la instancia se saturaba por memoria.
+
+Por ese motivo se cambió a:
+
+```text
+t2.medium
+```
+
+Con esta instancia fue posible ejecutar los contenedores principales de forma estable.
+
+IP pública usada durante la prueba final:
+
+```text
+23.22.114.156
+```
+
+> Esta IP puede cambiar si la instancia EC2 se detiene y se inicia nuevamente.
+
+## Comandos útiles en EC2
+
+Crear red Docker:
+
+```bash
+sudo docker network create red-hospital
+```
+
+Ver contenedores activos:
+
+```bash
+sudo docker ps
+```
+
+Ver contenedores creados:
+
+```bash
+sudo docker ps -a
+```
+
+Ver logs sin dejar pegada la terminal:
+
+```bash
+sudo timeout 10 docker logs --tail 80 nombre-contenedor
+```
+
+## Levantar flujo Kafka
+
+```bash
+sudo docker start zookeeper-1
+sleep 30
+
+sudo docker start kafka-1
+sleep 60
+
+sudo docker start consumidor-alertas-oracle
+sleep 30
+
+sudo docker start procesador-senales
+sleep 30
+
+sudo docker start productor-senales
+sleep 70
+```
+
+Validar contenedores:
+
+```bash
+sudo timeout 10 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
+```
+
+Logs recomendados para la demo:
+
+```bash
+sudo timeout 10 docker logs --tail 60 productor-senales
+sudo timeout 10 docker logs --tail 80 procesador-senales
+sudo timeout 10 docker logs --tail 80 consumidor-alertas-oracle
+```
+
+## Levantar flujo RabbitMQ
+
+Primero se recomienda detener Kafka si no se va a mostrar en ese momento:
+
+```bash
+sudo docker stop productor-senales procesador-senales consumidor-alertas-oracle kafka-1 zookeeper-1
+```
+
+Luego levantar RabbitMQ:
+
+```bash
+sudo docker start rabbitmq-alertas-medicas
+sleep 25
+
+sudo docker start bff-hospital-graham
+sleep 15
+
+sudo docker start productor-alertas
+sleep 15
+
+sudo docker start productor-resumenes
+sleep 15
+
+sudo docker start consumidor-json
+sleep 15
+
+sudo docker start consumidor-oracle
+```
+
+Validar colas:
+
+```bash
+sudo timeout 10 docker exec rabbitmq-alertas-medicas rabbitmqctl list_queues name messages_ready messages_unacknowledged
+```
+
+Logs recomendados:
+
+```bash
+sudo timeout 10 docker logs --tail 50 productor-alertas
+sudo timeout 10 docker logs --tail 50 productor-resumenes
+sudo timeout 10 docker logs --tail 50 consumidor-json
+sudo timeout 10 docker logs --tail 50 consumidor-oracle
+```
+
+## Ejecución local del frontend
+
+Desde la carpeta del frontend:
+
+```bash
+npm install
+npm start
+```
+
+Luego abrir:
+
+```text
+http://localhost:4200
+```
+
+## Compilar y subir imagen del BFF
+
+Desde la carpeta del BFF:
+
+```bash
+mvn clean package -DskipTests
+```
+
+Construir imagen:
+
+```bash
+docker build -t darknight17/bff-hospital-graham:latest .
+```
+
+Subir imagen:
 
 ```bash
 docker push darknight17/bff-hospital-graham:latest
 ```
 
+Actualizar en EC2:
+
+```bash
+sudo docker pull darknight17/bff-hospital-graham:latest
+sudo docker rm -f bff-hospital-graham
+```
+
+Crear nuevamente el contenedor:
+
+```bash
+sudo docker create \
+--name bff-hospital-graham \
+--network red-hospital \
+--memory=768m \
+-p 8080:8080 \
+-e TNS_ADMIN_PATH=/app/Wallet \
+-e SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=2 \
+-e SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=1 \
+-e JAVA_TOOL_OPTIONS="-Xms128m -Xmx384m" \
+darknight17/bff-hospital-graham:latest
+```
+
+Levantar:
+
+```bash
+sudo docker start bff-hospital-graham
+```
+
+## Pruebas realizadas
+
+Se validaron las siguientes pruebas:
+
+- Inicio de sesión con Azure B2C.
+- Consumo de endpoints protegidos con JWT.
+- CRUD de pacientes desde Angular.
+- Persistencia de pacientes en Oracle.
+- Envío de alerta manual desde el frontend.
+- Publicación de alerta en RabbitMQ.
+- Consumo de alerta desde `consumidor-oracle`.
+- Inserción de alerta en `ALERTAS_MEDICAS`.
+- Envío de resumen a `cola.resumenes`.
+- Consumo de resumen por `consumidor-json`.
+- Generación de señales vitales con Kafka.
+- Procesamiento de anomalías en Kafka.
+- Inserción de alertas Kafka en `ALERTAS_KAFKA`.
+- Visualización de alertas Kafka en el frontend.
+
+## Consideraciones importantes
+
+- Si la instancia EC2 cambia de IP pública, se debe actualizar:
+  - API Gateway.
+  - Lista de acceso de Oracle Cloud.
+- La instancia `t2.micro` no fue suficiente para ejecutar todos los microservicios juntos.
+- Para la prueba final se utilizó `t2.medium`.
+- Kafka y RabbitMQ pueden levantarse por separado para evitar consumo innecesario.
+- El Wallet de Oracle y las credenciales deben tratarse como información sensible.
+
 ## Estado final del proyecto
 
-El sistema quedó funcionando con autenticación mediante Azure B2C, consumo de servicios REST protegidos por JWT, API Gateway como API Manager, backend desplegado en Docker sobre AWS EC2 y conexión a Oracle Cloud.
+El sistema quedó funcionando con:
+
+```text
+Azure B2C ✅
+Frontend Angular ✅
+API Gateway ✅
+BFF Spring Boot en EC2 ✅
+Oracle Cloud ✅
+RabbitMQ ✅
+Kafka ✅
+Docker Hub ✅
+```

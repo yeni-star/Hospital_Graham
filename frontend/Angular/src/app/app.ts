@@ -384,58 +384,65 @@ export class AppComponent implements OnInit {
   }
 
   enviarAlertaUrgente(paciente: Paciente): void {
-    this.errorPacientes = "";
-    this.mensajeAccion = "";
+  this.errorPacientes = "";
+  this.mensajeAccion = "";
 
-    const alertaMsg = `ALERTA CRÍTICA: Paciente ${paciente.nombreApellido} (RUT: ${paciente.rut}) presenta signos vitales fuera de rango: ${paciente.signosVitales}.`;
+  const alertaRabbit = {
+    idPaciente: paciente.idPaciente,
+    tipoAlerta: paciente.criticidad === "CRITICO" ? "FRECUENCIA_CARDIACA_ALTA" : "SATURACION_BAJA",
+    valorDetectado: paciente.criticidad === "CRITICO" ? "135" : "91",
+    nivelCriticidad: "CRITICA",
+    mensajeAlerta: `Paciente ${paciente.nombreApellido} presenta signos vitales fuera de rango: ${paciente.signosVitales}.`,
+    origenMensaje: "Productor alertas"
+  };
 
-    this.registrarEventoMensajeria(
-      "RabbitMQ",
-      paciente.nombreApellido,
-      "Enviando",
-      "El BFF está orquestando la alerta hacia productor-alertas."
-    );
+  this.registrarEventoMensajeria(
+    "RabbitMQ",
+    paciente.nombreApellido,
+    "Enviando",
+    "El BFF está orquestando la alerta hacia productor-alertas."
+  );
 
-    this.http.post(
-      `${environment.apiConfig.uri}/orquestador/alerta`,
-      alertaMsg,
-      {
-        headers: this.obtenerHeaders(),
-        responseType: "text"
-      }
-    ).subscribe({
-      next: (respuesta) => {
-        console.log("Respuesta alerta:", respuesta);
+  this.http.post(
+    `${environment.apiConfig.uri}/orquestador/alerta`,
+    alertaRabbit,
+    {
+      headers: this.obtenerHeaders(),
+      responseType: "text"
+    }
+  ).subscribe({
+    next: (respuesta) => {
+      console.log("Respuesta alerta:", respuesta);
 
-        this.mensajeAccion = "Alerta urgente enviada correctamente al sistema.";
-        this.errorPacientes = "";
+      this.mensajeAccion = "Alerta urgente enviada correctamente al sistema.";
+      this.errorPacientes = "";
 
-        this.registrarEventoMensajeria(
-          "RabbitMQ",
-          paciente.nombreApellido,
-          "Enviado",
-          "Alerta enviada a cola.alertas.oracle y cola.alertas.json."
-        );
+      this.registrarEventoMensajeria(
+        "RabbitMQ",
+        paciente.nombreApellido,
+        "Enviado",
+        "Alerta enviada a cola.alertas.oracle y cola.alertas.json."
+      );
 
-        this.detectorCambios.detectChanges();
-      },
-      error: (error) => {
-        console.error("Fallo al intentar enviar la alerta", error);
+      this.detectorCambios.detectChanges();
+    },
+    error: (error) => {
+      console.error("Fallo al intentar enviar la alerta", error);
 
-        this.errorPacientes = "No pudimos enviar la alerta al sistema.";
-        this.mensajeAccion = "";
+      this.errorPacientes = "No pudimos enviar la alerta al sistema.";
+      this.mensajeAccion = "";
 
-        this.registrarEventoMensajeria(
-          "RabbitMQ",
-          paciente.nombreApellido,
-          "Error",
-          "No se pudo enviar la alerta desde el BFF hacia productor-alertas."
-        );
+      this.registrarEventoMensajeria(
+        "RabbitMQ",
+        paciente.nombreApellido,
+        "Error",
+        "No se pudo enviar la alerta desde el BFF hacia productor-alertas."
+      );
 
-        this.detectorCambios.detectChanges();
-      }
-    });
-  }
+      this.detectorCambios.detectChanges();
+    }
+  });
+}
 
   enviarResumenPaciente(paciente: Paciente): void {
     this.errorPacientes = "";
