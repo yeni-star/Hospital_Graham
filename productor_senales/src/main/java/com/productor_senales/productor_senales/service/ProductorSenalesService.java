@@ -21,7 +21,7 @@ public class ProductorSenalesService {
     }
 
 
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 60000)
     public void generarYEnviarSenales() {
         int ritmoCardiaco = 60 + random.nextInt(60);
         int presionSistolica = 90 + random.nextInt(50);

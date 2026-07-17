@@ -1,215 +1,320 @@
-<div *ngIf="cargandoMsal" style="text-align: center; margin-top: 100px;">
-  <h2>Cargando sistema...</h2>
-  <p>Validando sesión con Azure B2C.</p>
+<div *ngIf="cargandoMsal" class="pantalla-carga">
+  <div class="tarjeta-login">
+    <div class="icono-hospital">🏥</div>
+    <h2>Cargando sistema...</h2>
+    <p>Validando sesión con Azure B2C.</p>
+  </div>
 </div>
 
-<div *ngIf="!cargandoMsal && !estaLogueado" style="text-align: center; margin-top: 100px;">
-  <h2>Bienvenido al Sistema de Alertas Médicas</h2>
-  <p>Para continuar, debes autenticarte con el servicio de identidad del hospital.</p>
+<div *ngIf="!cargandoMsal && !estaLogueado" class="pantalla-carga">
+  <div class="tarjeta-login">
+    <div class="icono-hospital">🏥</div>
+    <h2>Hospital Graham</h2>
+    <h3>Sistema de Alertas Médicas</h3>
+    <p>Para continuar, debes iniciar sesión con el servicio de identidad del hospital.</p>
 
-  <button
-    (click)="iniciarSesion()"
-    style="padding: 12px 24px; font-size: 16px; cursor: pointer; background-color: #0078d4; color: white; border: none; border-radius: 4px; margin-top: 20px;">
-    Ingresar al Sistema
-  </button>
+    <button class="boton-principal" (click)="iniciarSesion()">
+      Ingresar al sistema
+    </button>
+  </div>
 </div>
 
-<div *ngIf="!cargandoMsal && estaLogueado">
-  <header style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background-color: #e3f2fd; border-bottom: 2px solid #90caf9;">
-    <h1 style="margin: 0; color: #1565c0;">Hospital - Alertas Médicas</h1>
+<div *ngIf="!cargandoMsal && estaLogueado" class="contenedor-principal">
+  <header class="cabecera">
+    <div>
+      <p class="etiqueta-superior">Panel Cloud Native</p>
+      <h1>Hospital Graham - Alertas Médicas</h1>
+      <p class="subtitulo">
+        Gestión de pacientes críticos, API Gateway, BFF, Oracle Cloud y mensajería RabbitMQ.
+      </p>
+    </div>
 
-    <button
-      (click)="cerrarSesion()"
-      style="padding: 8px 16px; cursor: pointer; background-color: #d32f2f; color: white; border: none; border-radius: 4px;">
-      Cerrar Sesión
+    <button class="boton-salir" (click)="cerrarSesion()">
+      Cerrar sesión
     </button>
   </header>
 
-  <main style="padding: 30px;">
-    <h3>Panel de Pacientes Críticos</h3>
-
-    <section style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 6px;">
-      <h4 style="margin-top: 0;">
-        {{ modoEdicion ? "Modificar paciente" : "Crear paciente" }}
-      </h4>
-
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+  <main class="contenido">
+    <section class="tarjetas-resumen">
+      <article class="tarjeta-info">
+        <span class="icono">👥</span>
         <div>
+          <p>Pacientes registrados</p>
+          <h2>{{ pacientes.length }}</h2>
+        </div>
+      </article>
+
+      <article class="tarjeta-info">
+        <span class="icono">🚨</span>
+        <div>
+          <p>Alertas médicas</p>
+          <h2>RabbitMQ</h2>
+        </div>
+      </article>
+
+      <article class="tarjeta-info">
+        <span class="icono">☁️</span>
+        <div>
+          <p>Conexión principal</p>
+          <h2>Oracle Cloud</h2>
+        </div>
+      </article>
+
+      <article class="tarjeta-info">
+        <span class="icono">🔐</span>
+        <div>
+          <p>Identidad</p>
+          <h2>Azure B2C</h2>
+        </div>
+      </article>
+    </section>
+
+    <section class="flujo-sistema">
+      <h3>Flujos demostrados</h3>
+
+      <div class="flujo-grid">
+        <div class="flujo-card">
+          <strong>CRUD pacientes</strong>
+          <p>Frontend → API Gateway → BFF → Oracle</p>
+        </div>
+
+        <div class="flujo-card">
+          <strong>Cola de alertas</strong>
+          <p>Frontend → BFF → productor-alertas → RabbitMQ</p>
+        </div>
+
+        <div class="flujo-card">
+          <strong>Resumen paciente</strong>
+          <p>BFF → productor-resumenes → cola de mensajes</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel-formulario">
+      <div class="titulo-seccion">
+        <div>
+          <p class="etiqueta-superior">Gestión de pacientes</p>
+          <h2>{{ modoEdicion ? "Modificar paciente" : "Crear paciente" }}</h2>
+        </div>
+
+        <span class="estado-formulario">
+          {{ modoEdicion ? "Modo edición" : "Nuevo registro" }}
+        </span>
+      </div>
+
+      <div class="formulario-grid">
+        <div class="campo">
           <label>ID paciente</label>
-          <input
-            type="number"
-            [(ngModel)]="pacienteFormulario.idPaciente"
-            readonly
-            style="width: 100%; padding: 6px; background-color: #eeeeee;">
+          <input type="number" [(ngModel)]="pacienteFormulario.idPaciente" readonly>
         </div>
 
-        <div>
+        <div class="campo">
           <label>Nombre y apellido</label>
-          <input
-            type="text"
-            [(ngModel)]="pacienteFormulario.nombreApellido"
-            style="width: 100%; padding: 6px;">
+          <input type="text" [(ngModel)]="pacienteFormulario.nombreApellido" placeholder="Ej: María González">
         </div>
 
-        <div>
+        <div class="campo">
           <label>RUT</label>
-          <input
-            type="text"
-            [(ngModel)]="pacienteFormulario.rut"
-            style="width: 100%; padding: 6px;">
+          <input type="text" [(ngModel)]="pacienteFormulario.rut" placeholder="Ej: 12345678-9">
         </div>
 
-        <div>
+        <div class="campo">
           <label>Criticidad</label>
-          <select
-            [(ngModel)]="pacienteFormulario.criticidad"
-            style="width: 100%; padding: 6px;">
+          <select [(ngModel)]="pacienteFormulario.criticidad">
             <option value="BAJO">BAJO</option>
             <option value="MEDIO">MEDIO</option>
             <option value="CRITICO">CRITICO</option>
           </select>
         </div>
 
-        <div>
+        <div class="campo">
           <label>Fecha llegada</label>
-          <input
-            type="date"
-            [(ngModel)]="pacienteFormulario.fechaLlegada"
-            style="width: 100%; padding: 6px;">
+          <input type="date" [(ngModel)]="pacienteFormulario.fechaLlegada">
         </div>
 
-        <div>
+        <div class="campo">
           <label>Fecha salida</label>
-          <input
-            type="date"
-            [(ngModel)]="pacienteFormulario.fechaSalida"
-            style="width: 100%; padding: 6px;">
+          <input type="date" [(ngModel)]="pacienteFormulario.fechaSalida">
         </div>
 
-        <div>
+        <div class="campo">
           <label>Temperatura</label>
-          <input
-            type="number"
-            step="0.1"
-            [(ngModel)]="pacienteFormulario.temperatura"
-            style="width: 100%; padding: 6px;">
+          <input type="number" step="0.1" [(ngModel)]="pacienteFormulario.temperatura">
         </div>
 
-        <div>
+        <div class="campo">
           <label>Habitación</label>
-          <input
-            type="text"
-            [(ngModel)]="pacienteFormulario.habitacion"
-            style="width: 100%; padding: 6px;">
+          <input type="text" [(ngModel)]="pacienteFormulario.habitacion" placeholder="Ej: UCI-202">
         </div>
 
-        <div>
+        <div class="campo campo-grande">
           <label>Signos vitales</label>
-          <input
-            type="text"
-            [(ngModel)]="pacienteFormulario.signosVitales"
-            style="width: 100%; padding: 6px;">
+          <input type="text" [(ngModel)]="pacienteFormulario.signosVitales" placeholder="Ej: Presión 130/85, pulso 95, oxígeno 93%">
         </div>
       </div>
 
-      <div style="margin-top: 15px;">
-        <button
-          (click)="guardarPaciente()"
-          style="padding: 8px 14px; cursor: pointer; background-color: #2e7d32; color: white; border: none; border-radius: 4px; margin-right: 10px;">
+      <div class="acciones-formulario">
+        <button class="boton-verde" (click)="guardarPaciente()">
           {{ modoEdicion ? "Guardar cambios" : "Crear paciente" }}
         </button>
 
-        <button
-          (click)="prepararFormularioNuevo()"
-          style="padding: 8px 14px; cursor: pointer; background-color: #757575; color: white; border: none; border-radius: 4px;">
+        <button class="boton-gris" (click)="prepararFormularioNuevo()">
           Limpiar formulario
+        </button>
+
+        <button class="boton-azul" (click)="consultarPacientes()">
+          Actualizar pacientes
         </button>
       </div>
     </section>
 
-    <div style="margin-bottom: 15px;">
-      <button
-        (click)="consultarPacientes()"
-        style="padding: 8px 14px; cursor: pointer; background-color: #1565c0; color: white; border: none; border-radius: 4px;">
-        Actualizar pacientes
-      </button>
-    </div>
+    <section class="mensajes">
+      <p *ngIf="cargandoPacientes" class="mensaje-cargando">
+        Cargando pacientes...
+      </p>
 
-    <p *ngIf="cargandoPacientes">Cargando pacientes...</p>
+      <p *ngIf="mensajeAccion" class="mensaje-ok">
+        {{ mensajeAccion }}
+      </p>
 
-    <p *ngIf="mensajeAccion" style="color: green;">
-      {{ mensajeAccion }}
-    </p>
+      <p *ngIf="errorPacientes" class="mensaje-error">
+        {{ errorPacientes }}
+      </p>
+    </section>
+    <section class="panel-eventos">
+      <div class="titulo-seccion">
+        <div>
+          <p class="etiqueta-superior">Mensajería en vivo</p>
+          <h2>Monitor de eventos asíncronos</h2>
+        </div>
 
-    <p *ngIf="errorPacientes" style="color: red;">
-      {{ errorPacientes }}
-    </p>
+        <span class="estado-formulario">
+          RabbitMQ / Kafka
+        </span>
+      </div>
 
-    <table
-      *ngIf="!cargandoPacientes && pacientes.length > 0"
-      border="1"
-      cellpadding="8"
-      cellspacing="0"
-      style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-      <thead style="background-color: #e3f2fd;">
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>RUT</th>
-          <th>Criticidad</th>
-          <th>Fecha llegada</th>
-          <th>Fecha salida</th>
-          <th>Temperatura</th>
-          <th>Habitación</th>
-          <th>Signos vitales</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
+      <div class="descripcion-eventos">
+        <p>
+          En este panel se muestran los eventos generados desde el frontend cuando se envían alertas o resúmenes hacia los microservicios.
+        </p>
+      </div>
 
-      <tbody>
-        <tr *ngFor="let paciente of pacientes">
-          <td>{{ paciente.idPaciente }}</td>
-          <td>{{ paciente.nombreApellido }}</td>
-          <td>{{ paciente.rut }}</td>
-          <td>{{ paciente.criticidad }}</td>
-          <td>{{ paciente.fechaLlegada }}</td>
-          <td>{{ paciente.fechaSalida || "Sin alta" }}</td>
-          <td>{{ paciente.temperatura }}</td>
-          <td>{{ paciente.habitacion }}</td>
-          <td>{{ paciente.signosVitales }}</td>
-          <td>
-            <button
-              (click)="cargarPacienteParaEditar(paciente)"
-              style="padding: 6px 10px; cursor: pointer; background-color: #f9a825; color: black; border: none; border-radius: 4px; margin-right: 6px;">
-              Modificar
-            </button>
+      <div class="eventos-vacio" *ngIf="eventosMensajeria.length === 0">
+        <span>📡</span>
+        <p>Aún no se han enviado eventos desde el panel.</p>
+      </div>
 
-            <button
-              (click)="eliminarPaciente(paciente.idPaciente)"
-              style="padding: 6px 10px; cursor: pointer; background-color: #c62828; color: white; border: none; border-radius: 4px;">
-              Eliminar
-            </button>
+      <div class="lista-eventos" *ngIf="eventosMensajeria.length > 0">
+        <div class="evento-item" *ngFor="let evento of eventosMensajeria">
+          <div class="evento-hora">
+            {{ evento.hora }}
+          </div>
 
-            <!-- Nuevos botones para interactuar con la orquestación -->
-            <button
-              (click)="enviarAlertaUrgente(paciente)"
-              style="padding: 6px 10px; cursor: pointer; background-color: #d84315; color: white; border: none; border-radius: 4px; margin-right: 6px;">
-              Alerta
-            </button>
+          <div class="evento-contenido">
+            <div class="evento-cabecera">
+              <span
+                class="evento-tipo"
+                [ngClass]="{
+                  'tipo-rabbit': evento.tipo === 'RabbitMQ',
+                  'tipo-kafka': evento.tipo === 'Kafka'
+                }">
+                {{ evento.tipo }}
+              </span>
 
-            <button
-              (click)="enviarResumenPaciente(paciente)"
-              style="padding: 6px 10px; cursor: pointer; background-color: #283593; color: white; border: none; border-radius: 4px;">
-              Resumen
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              <span
+                class="evento-estado"
+                [ngClass]="{
+                  'estado-enviando': evento.estado === 'Enviando',
+                  'estado-enviado': evento.estado === 'Enviado',
+                  'estado-error': evento.estado === 'Error'
+                }">
+                {{ evento.estado }}
+              </span>
+            </div>
 
-    <p *ngIf="!cargandoPacientes && pacientes.length === 0 && !errorPacientes">
-      No hay pacientes registrados.
-    </p>
+            <h4>{{ evento.paciente }}</h4>
+            <p>{{ evento.detalle }}</p>
+          </div>
+        </div>
+      </div>
+</section>
+    <section class="panel-tabla">
+      <div class="titulo-seccion">
+        <div>
+          <p class="etiqueta-superior">Base de datos</p>
+          <h2>Pacientes registrados</h2>
+        </div>
+      </div>
+
+      <div class="tabla-contenedor" *ngIf="!cargandoPacientes && pacientes.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>RUT</th>
+              <th>Criticidad</th>
+              <th>Fecha llegada</th>
+              <th>Fecha salida</th>
+              <th>Temperatura</th>
+              <th>Habitación</th>
+              <th>Signos vitales</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let paciente of pacientes">
+              <td>{{ paciente.idPaciente }}</td>
+              <td class="nombre-paciente">{{ paciente.nombreApellido }}</td>
+              <td>{{ paciente.rut }}</td>
+
+              <td>
+                <span
+                  class="badge"
+                  [ngClass]="{
+                    'badge-critico': paciente.criticidad === 'CRITICO',
+                    'badge-medio': paciente.criticidad === 'MEDIO',
+                    'badge-bajo': paciente.criticidad === 'BAJO'
+                  }">
+                  {{ paciente.criticidad }}
+                </span>
+              </td>
+
+              <td>{{ paciente.fechaLlegada }}</td>
+              <td>{{ paciente.fechaSalida || "Sin alta" }}</td>
+              <td>{{ paciente.temperatura }}°C</td>
+              <td>{{ paciente.habitacion }}</td>
+              <td>{{ paciente.signosVitales }}</td>
+
+              <td>
+                <div class="botones-tabla">
+                  <button class="boton-mini editar" (click)="cargarPacienteParaEditar(paciente)">
+                    Modificar
+                  </button>
+
+                  <button class="boton-mini eliminar" (click)="eliminarPaciente(paciente.idPaciente)">
+                    Eliminar
+                  </button>
+
+                  <button class="boton-mini alerta" (click)="enviarAlertaUrgente(paciente)">
+                    Alerta
+                  </button>
+
+                  <button class="boton-mini resumen" (click)="enviarResumenPaciente(paciente)">
+                    Resumen
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p *ngIf="!cargandoPacientes && pacientes.length === 0 && !errorPacientes" class="mensaje-vacio">
+        No hay pacientes registrados.
+      </p>
+    </section>
 
     <router-outlet></router-outlet>
   </main>

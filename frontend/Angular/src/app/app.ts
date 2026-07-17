@@ -19,6 +19,14 @@ interface Paciente {
   signosVitales: string;
 }
 
+interface EventoMensajeria {
+  hora: string;
+  tipo: string;
+  paciente: string;
+  estado: string;
+  detalle: string;
+}
+
 @Component({
   selector: "app-root",
   standalone: true,
@@ -34,6 +42,8 @@ export class AppComponent implements OnInit {
   cargandoPacientes = false;
   errorPacientes = "";
   mensajeAccion = "";
+
+  eventosMensajeria: EventoMensajeria[] = [];
 
   modoEdicion = false;
 
@@ -299,11 +309,44 @@ export class AppComponent implements OnInit {
     });
   }
 
+  registrarEventoMensajeria(
+    tipo: string,
+    paciente: string,
+    estado: string,
+    detalle: string
+  ): void {
+    const fechaActual = new Date();
+
+    const hora = fechaActual.toLocaleTimeString("es-CL", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+
+    const nuevoEvento: EventoMensajeria = {
+      hora,
+      tipo,
+      paciente,
+      estado,
+      detalle
+    };
+
+    this.eventosMensajeria = [nuevoEvento, ...this.eventosMensajeria].slice(0, 8);
+    this.detectorCambios.detectChanges();
+  }
+
   enviarAlertaUrgente(paciente: Paciente): void {
     this.errorPacientes = "";
     this.mensajeAccion = "";
 
     const alertaMsg = `ALERTA CRÍTICA: Paciente ${paciente.nombreApellido} (RUT: ${paciente.rut}) presenta signos vitales fuera de rango: ${paciente.signosVitales}.`;
+
+    this.registrarEventoMensajeria(
+      "RabbitMQ",
+      paciente.nombreApellido,
+      "Enviando",
+      "El BFF está orquestando la alerta hacia productor-alertas."
+    );
 
     this.http.post(
       `${environment.apiConfig.uri}/orquestador/alerta`,
@@ -319,6 +362,13 @@ export class AppComponent implements OnInit {
         this.mensajeAccion = "Alerta urgente enviada correctamente al sistema.";
         this.errorPacientes = "";
 
+        this.registrarEventoMensajeria(
+          "RabbitMQ",
+          paciente.nombreApellido,
+          "Enviado",
+          "Alerta enviada a cola.alertas.oracle y cola.alertas.json."
+        );
+
         this.detectorCambios.detectChanges();
       },
       error: (error) => {
@@ -326,6 +376,13 @@ export class AppComponent implements OnInit {
 
         this.errorPacientes = "No pudimos enviar la alerta al sistema.";
         this.mensajeAccion = "";
+
+        this.registrarEventoMensajeria(
+          "RabbitMQ",
+          paciente.nombreApellido,
+          "Error",
+          "No se pudo enviar la alerta desde el BFF hacia productor-alertas."
+        );
 
         this.detectorCambios.detectChanges();
       }
@@ -347,6 +404,13 @@ export class AppComponent implements OnInit {
       fechaResumen: new Date().toISOString()
     };
 
+    this.registrarEventoMensajeria(
+      "RabbitMQ",
+      paciente.nombreApellido,
+      "Enviando",
+      "El BFF está enviando el resumen hacia productor-resumenes."
+    );
+
     this.http.post(
       `${environment.apiConfig.uri}/orquestador/resumen`,
       resumen,
@@ -361,6 +425,13 @@ export class AppComponent implements OnInit {
         this.mensajeAccion = "Resumen del paciente enviado correctamente.";
         this.errorPacientes = "";
 
+        this.registrarEventoMensajeria(
+          "RabbitMQ",
+          paciente.nombreApellido,
+          "Enviado",
+          "Resumen enviado a la cola de mensajes correspondiente."
+        );
+
         this.detectorCambios.detectChanges();
       },
       error: (error) => {
@@ -368,6 +439,13 @@ export class AppComponent implements OnInit {
 
         this.errorPacientes = "Tuvimos un problema enviando el resumen.";
         this.mensajeAccion = "";
+
+        this.registrarEventoMensajeria(
+          "RabbitMQ",
+          paciente.nombreApellido,
+          "Error",
+          "No se pudo enviar el resumen desde el BFF hacia productor-resumenes."
+        );
 
         this.detectorCambios.detectChanges();
       }
